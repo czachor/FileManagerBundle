@@ -59,8 +59,10 @@ class ManagerController extends AbstractController {
         }
         $fileManager = $this->newFileManager($queryParameters);
 
-        // Folder search
-        $directoriesArbo = $this->retrieveSubDirectories($fileManager, $fileManager->getDirName(), \DIRECTORY_SEPARATOR, $fileManager->getBaseName());
+        // Folder search, walks the whole directory tree, so only when the tree is displayed
+        $directoriesArbo = $fileManager->getTree()
+            ? $this->retrieveSubDirectories($fileManager, $fileManager->getDirName(), \DIRECTORY_SEPARATOR, $fileManager->getBaseName())
+            : null;
 
         // File search
         $finderFiles = new Finder();
