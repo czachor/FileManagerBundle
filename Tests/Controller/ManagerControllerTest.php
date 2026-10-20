@@ -111,6 +111,8 @@ class ManagerControllerTest extends AbstractTestCase
         $data = json_decode($this->client->getResponse()->getContent(), true);
 
         $this->assertNull($data['treeData']);
+        // SubDir and text.txt
+        $this->assertSame(2, $data['badge']);
     }
 
     public function testJsonWithTreeHasTreeData()
@@ -119,6 +121,8 @@ class ManagerControllerTest extends AbstractTestCase
         $data = json_decode($this->client->getResponse()->getContent(), true);
 
         $this->assertNotEmpty($data['treeData']);
+        // tree mode lists files only
+        $this->assertSame(1, $data['badge']);
     }
 
     public function testOrderByDimension()
