@@ -11,7 +11,7 @@ class File
 {
     public const IMAGE_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg', 'svg', 'webp'];
 
-    private $preview;
+    private ?array $preview = null;
 
     private array|false|string|null $dimension = null;
 
@@ -20,7 +20,6 @@ class File
      */
     public function __construct(private SplFileInfo $file,private TranslatorInterface $translator,private FileTypeService $fileTypeService,private FileManager $fileManager)
     {
-        $this->preview = $this->fileTypeService->preview($this->fileManager, $this->file);
     }
 
     /**
@@ -87,7 +86,7 @@ class File
     }
 
     public function isImage(): bool {
-        return \array_key_exists('image', $this->preview);
+        return \array_key_exists('image', $this->getPreview());
     }
 
     public function getFile(): SplFileInfo {
@@ -100,7 +99,8 @@ class File
     }
 
     public function getPreview(): array {
-        return $this->preview;
+        // Lazy: the preview renders a Twig template, so build it only for files that are displayed
+        return $this->preview ??= $this->fileTypeService->preview($this->fileManager, $this->file);
     }
 
     public function setPreview(array $preview) :void

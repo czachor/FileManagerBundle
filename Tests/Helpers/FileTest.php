@@ -47,14 +47,34 @@ class FileTest extends TestCase
         $this->assertSame('', $file->getDimension());
     }
 
-    private function createFile(string $name, string $content): File
+    public function testPreviewIsNotBuiltUntilNeeded()
+    {
+        $fileTypeService = $this->createMock(FileTypeService::class);
+        $fileTypeService->expects($this->never())->method('preview');
+
+        $this->createFile('text.txt', 'text', $fileTypeService)->getDimension();
+    }
+
+    public function testPreviewIsBuiltOnce()
+    {
+        $fileTypeService = $this->createMock(FileTypeService::class);
+        $fileTypeService->expects($this->once())->method('preview')->willReturn(['image' => true]);
+
+        $file = $this->createFile('text.txt', 'text', $fileTypeService);
+
+        $this->assertTrue($file->isImage());
+        $this->assertSame(['image' => true], $file->getPreview());
+        $this->assertSame(['image' => true], $file->getPreview());
+    }
+
+    private function createFile(string $name, string $content, ?FileTypeService $fileTypeService = null): File
     {
         file_put_contents($this->dir.'/'.$name, $content);
 
         return new File(
             new SplFileInfo($this->dir.'/'.$name, '', $name),
             $this->createMock(TranslatorInterface::class),
-            $this->createMock(FileTypeService::class),
+            $fileTypeService ?? $this->createMock(FileTypeService::class),
             $this->createMock(FileManager::class),
         );
     }
