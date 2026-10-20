@@ -120,4 +120,10 @@ class ManagerControllerTest extends AbstractTestCase
 
         $this->assertNotEmpty($data['treeData']);
     }
+
+    public function testOrderByDimension()
+    {
+        $this->getBackendPage(['conf' => 'default', 'orderby' => 'dimension']);
+        $this->assertSame(200, $this->client->getResponse()->getStatusCode());
+    }
 }

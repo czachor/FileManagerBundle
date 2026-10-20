@@ -3,12 +3,17 @@
 namespace Artgris\Bundle\FileManagerBundle\Helpers;
 
 use Artgris\Bundle\FileManagerBundle\Service\FileTypeService;
+use Symfony\Component\ErrorHandler\ErrorHandler;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class File
 {
+    public const IMAGE_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg', 'svg', 'webp'];
+
     private $preview;
+
+    private array|false|string|null $dimension = null;
 
     /**
      * File constructor.
@@ -19,11 +24,25 @@ class File
     }
 
     /**
+     * Memoized: sorting by dimension calls this for every comparison.
+     *
      * @return array|false|string
      */
     public function getDimension(): bool|array|string {
-        return preg_match('/(gif|png|jpe?g|svg|webp)$/i', $this->file->getExtension()) ?
-            @getimagesize($this->file->getPathname()) : '';
+        return $this->dimension ??= $this->readDimension();
+    }
+
+    private function readDimension(): array|false|string {
+        if (!\in_array(strtolower($this->file->getExtension()), self::IMAGE_EXTENSIONS, true)) {
+            return '';
+        }
+
+        try {
+            // Turns the warning emitted for unreadable or corrupt images into an exception
+            return ErrorHandler::call('getimagesize', $this->file->getPathname());
+        } catch (\ErrorException) {
+            return false;
+        }
     }
 
     public function getHTMLDimension(): ?string {
